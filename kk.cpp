@@ -53,7 +53,6 @@ int main(int argc, char** argv) {
 
     char* input = argv[1];
 
-    int N = 10;
 
     // READING IN FILE & PUSHING EACH NUMBER TO A VECTOR V
     std::vector<int> v;
@@ -68,25 +67,7 @@ int main(int argc, char** argv) {
 
     // print_vec(v);
 
-    printf("%d", kk(v));
-
-
-    // RANDOMLY GENERATING A VECTOR OF SIZE N
-
-    // printf("\n\nRandom:\n");
-    // srand48(time(NULL));
-    // std::vector<int> thing = gen_random_vec(N);
-    // print_vec(thing);
-
-    // printf("RESULT OF kk(random): %d\n", kk(thing));
-
-
-    
-
-
-
-
-
+    printf("%d\n", kk(v));
 
 
     
