@@ -94,7 +94,7 @@ int hill_climbing(int A[],int S[], double sum, int size, int n_iter){
         if(res < current_best){
             set_equal(place_holder,S,size);
             current_best = res;
-            printf("current: %d \n",current_best);
+            // printf("current: %d \n",current_best);
         }
     }
     return current_best;
@@ -116,7 +116,7 @@ int sim_annealing(int A[],int S[], double sum, int size, int n_iter){
         if(S_res2 < S_res){
             set_equal(place_holder,S,size);
             S_res = S_res2;
-            printf("current: %d \n",S_res);
+            // printf("current: %d \n",S_res);
         }
         else{
             double prob = (-S_res2 - S_res)/T(k);
@@ -142,7 +142,7 @@ int main(){
     int A[size];
     srand48((int)time(NULL));
     /* read integers into an array */
-    FILE *fin = fopen("file.in","r");
+    FILE *fin = fopen("file.in2","r");
     for(int k=0;k<size;k++){
         fscanf(fin,"%d\n",&A[k]);
     }
