@@ -191,9 +191,14 @@ long long repeated_random(std::vector<long long> A, int S[], int P[], long doubl
     return current_best;
 }
 
-long double T(int iter){
+long double T(int iter, bool use_P){
     double power = iter/300;
-    return 300000000000*pow(.8,power);
+    if(use_P==1){
+        return 300000000*pow(.8,power);
+    }
+    else{
+        return 300000000000*pow(.8,power);
+    }  
 }
 
 long long hill_climbing(std::vector<long long> A,int S[], int P[], long double sum, int size, int n_iter, bool use_P){
@@ -254,7 +259,7 @@ long long sim_annealing(std::vector<long long> A,int S[], int P[], long double s
                 // printf("current: %d \n",S_res);
             }
             else{
-                long double prob = (-S_res2 - S_res)/T(k);
+                long double prob = (-S_res2 - S_res)/T(k,use_P);
                 prob = exp(prob);
                 if(drand48() < prob){
                     rand_count += 1;
@@ -288,7 +293,7 @@ long long sim_annealing(std::vector<long long> A,int S[], int P[], long double s
                 // printf("current: %d \n",S_res);
             }
             else{
-                long double prob = (-S_res2 - S_res)/T(k);
+                long double prob = (-S_res2 - S_res)/T(k,use_P);
                 prob = exp(prob);
                 if(drand48() < prob){
                     rand_count += 1;
@@ -325,8 +330,9 @@ int main(){
     int P[size];
     int a, b, c;
     long long scores[3] = {0,0,0};
+    int iters = 10;
 
-    for(int i=0;i<100;i++){
+    for(int i=0;i<iters;i++){
         scores[0] += repeated_random(A,S,P,total_sum,size,25000,1);
         scores[1] += hill_climbing(A,S,P,total_sum,size,25000,1);
         scores[2] += sim_annealing(A,S,P,total_sum,size,25000,1);
@@ -336,9 +342,9 @@ int main(){
     long double scores_avg[3] = {scores[0],scores[1],scores[2]};
     /*scores_avg = {scores_avg[0]/100,scores_avg[1]/100,scores_avg[2]/100};*/
 
-    printf("random score: %LF \n",scores_avg[1]/100);
-    printf("hill score: %LF \n",scores_avg[1]/100);
-    printf("sim_annealing score: %LF \n",scores_avg[2]/100);
+    printf("random score: %LF \n",scores_avg[0]/iters);
+    printf("hill score: %LF \n",scores_avg[1]/iters);
+    printf("sim_annealing score: %LF \n",scores_avg[2]/iters);
     
 
 
