@@ -37,6 +37,13 @@ void set_equal(int S[],int S2[],int len){
     }
 }
 
+/* set the second array equal to the first before */
+void v_set_equal(std::vector<long long> A,std::vector<long long> A2,int len){
+    for(int i=0;i<len;i++){
+        A2[i] = A[i];
+    }
+}
+
 /* a random move of one or two elements; alters S2 and leaves S unchanged */
 void random_move(int S[],int S2[],int len){
     set_equal(S,S2,len);
@@ -92,16 +99,34 @@ void partitionTransform(std::vector<long long> A, std::vector<long long> newA, i
     }
 }
 
-long long repeated_random(std::vector<long long> A, int S[], long double sum, int size, int n_iter){
+long long repeated_random(std::vector<long long> A, int S[], int P[], long double sum, int size, int n_iter, bool use_P){
     long long current_best = sum;
     long long S_local[size];
-    for(int i=0;i<n_iter;i++){
-        jumble(S,size);
-        long long res = residue(A,S,sum,size);
-        if(res < current_best){
-            printf("res: %lli \n",res);
-            current_best = res;
-            *S_local = *S;
+    std::vector<long long> A2(size,0);
+    /* first representation, then second one */
+    if(use_P==0){
+        for(int i=0;i<n_iter;i++){
+            jumble(S,size);
+            long long res = residue(A,S,sum,size);
+            if(res < current_best){
+                /*printf("res: %lli \n",res);*/
+                current_best = res;
+                *S_local = *S;
+            }
+        }
+    }
+        
+    else{
+        for(int i=0;i<n_iter;i++){
+            p_jumble(P,size);
+            partitionTransform(A,A2,P,size);
+            v_set_equal(A2,A,size);
+            long long res = residue(A,S,sum,size);
+            if(res < current_best){
+                /*printf("res: %lli \n",res);*/
+                current_best = res;
+                *S_local = *S;
+            }
         }
     }
     return current_best;
@@ -116,13 +141,13 @@ long long hill_climbing(std::vector<long long> A,int S[], long double sum, int s
     int place_holder[size];
     jumble(S,size);
     long long current_best = residue(A,S,sum,size);
-    printf("initial residue: %lli \n",current_best);
+    /*printf("initial residue: %lli \n",current_best);*/ 
     for(int k=0;k<n_iter;k++){
         random_move(S,place_holder,size);
         long long res = residue(A,place_holder,sum,size);
         if(res < current_best){
             set_equal(place_holder,S,size);
-            printf("res: %lli \n",res);
+            /*printf("res: %lli \n",res); */
             current_best = res;
             // printf("current: %d \n",current_best);
         }
@@ -139,7 +164,7 @@ long long sim_annealing(std::vector<long long> A,int S[], long double sum, int s
     long long S_res = residue(A,S,sum,size);
     long long S_res3 = S_res;
     int rand_count = 0;
-    printf("initial residue: %lli \n",S_res);
+    /*printf("initial residue: %lli \n",S_res);*/
     for(int k=0;k<n_iter;k++){
         random_move(S,place_holder,size);
         long long S_res2 = residue(A,place_holder,sum,size);
@@ -158,7 +183,6 @@ long long sim_annealing(std::vector<long long> A,int S[], long double sum, int s
                 set_equal(place_holder,S,size);
                 S_res = S_res2;
             }
-
         }
         if(S_res < S_res3){
             S_res3 = S_res;
@@ -171,7 +195,7 @@ long long sim_annealing(std::vector<long long> A,int S[], long double sum, int s
 
 int main(){
     int size = 100;
-    std::vector<long long> A(100,0);
+    std::vector<long long> A(size,0);
     srand48((int)time(NULL));
     /* read integers into an array */
     FILE *fin = fopen("hi.txt","r");
@@ -183,31 +207,26 @@ int main(){
     printf("sum: %Lf \n",total_sum);
 
 
-    
     int S[size];
     int P[size];
     int a, b, c;
     long long scores[3] = {0,0,0};
 
     for(int i=0;i<100;i++){
-        scores[0] += repeated_random(A,S,total_sum,size,25000);
-        scores[1] += hill_climbing(A,S,total_sum,size,25000);
-        scores[2] += sim_annealing(A,S,total_sum,size,25000);
+        scores[0] += repeated_random(A,S,P,total_sum,size,25000,1);
+        /*scores[1] += hill_climbing(A,S,total_sum,size,25000);
+        scores[2] += sim_annealing(A,S,total_sum,size,25000);*/
+        printf("hi \n");
     }
     
     long double scores_avg[3] = {scores[0],scores[1],scores[2]};
     /*scores_avg = {scores_avg[0]/100,scores_avg[1]/100,scores_avg[2]/100};*/
 
     printf("random score: %LF \n",scores_avg[0]/100);
-    printf("hill score: %LF \n",scores_avg[1]/100);
-    printf("sim_annealing score: %LF \n",scores_avg[2]/100);
+    /*printf("hill score: %LF \n",scores_avg[1]/100);
+    printf("sim_annealing score: %LF \n",scores_avg[2]/100);*/
     
 
-    /*
-    printf("hill score: %LF \n",scores2/100);
-
-    
-    printf("sim_annealing score: %LF \n",scores3/100); */
 
 }
 

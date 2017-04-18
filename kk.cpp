@@ -75,8 +75,6 @@ int main(int argc, char** argv) {
     fclose(fin);
 
 
-
-
     double s = clock();
 
     printf("%lli, ", kk(v));
