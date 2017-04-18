@@ -27,9 +27,6 @@ void print_vec(const std::vector<long long>& vec)
     std::cout << '\n';
 }
 
-
-
-
 /* generate 'len' random binary numbers to simulate random S */
 void jumble(int S[],int len){
     for(int i=0;i<len;i++){
@@ -102,6 +99,16 @@ void random_move(int S[],int S2[],int len){
     }
 }
 
+void p_random_move(int P[],int P2[],int len){
+    set_equal(P,P2,len);
+    int rand_indices[2];
+    gen_rand_ind(rand_indices,len);
+    while(P[rand_indices[0]] == rand_indices[1]){
+        gen_rand_ind(rand_indices,len);
+    }
+    /*printf(" r_indices: %d %d \n",rand_indices[0],rand_indices[1]);*/
+    P2[rand_indices[0]] = rand_indices[1];
+}
 
 
 long long arr_sum(std::vector<long long> A,int size){
@@ -132,21 +139,14 @@ std::vector<long long> partitionTransform(std::vector<long long> A, int P[], int
 
         for(int i=0; i<size+1; i++){
             if (P[i] == group) {
-                // printf("first_index: %d", first_index);
                 if (searching){
                     searching = false;
-                    // printf("A[%d] = %lli\n", i, A[i]);
                     newA[i] = A[i];
-                    // printf("newA[%d] = %lli\n", i, newA[i]);
                     first_index = i;
-                    // printf("val: %lli", A[i]);
                 }
                 else {
-                    // printf("first_index: %d -- %lli\n", first_index, newA[first_index]);
                     long long temp = newA[first_index];
                     newA[first_index] = temp + A[i];
-                    // printf("NEWA[%d] = %lli\n", first_index, newA[first_index]);
-                    // newA[i] = 0;
                 }   
             }
         }
@@ -176,16 +176,13 @@ long long repeated_random(std::vector<long long> A, int S[], int P[], long doubl
     else{
         for(int i=0;i<n_iter;i++){
             p_jumble(P,size);
-            printf("PARTITION:\n");
-            printArrayI(P,size);
             std::vector <long long> A2 = partitionTransform(A,P,size);
-            printf("ORIGINAL ARRAY:\n");
-            print_vec(A);
-            printf("PARTITIONED ARRAY:\n");
-            print_vec(A2);
             long long res = kk(A2);
             if(res < current_best){
-                /*printf("res: %lli \n",res);*/
+                /*printArrayI(P,size);
+                print_vec(A);
+                print_vec(A2);*/
+                printf("res: %lli \n",res);
                 current_best = res;
                 *S_local = *S;
             }
@@ -199,56 +196,110 @@ long double T(int iter){
     return 300000000000*pow(.8,power);
 }
 
-long long hill_climbing(std::vector<long long> A,int S[], long double sum, int size, int n_iter){
-    int place_holder[size];
-    jumble(S,size);
-    long long current_best = residue(A,S,sum,size);
+long long hill_climbing(std::vector<long long> A,int S[], int P[], long double sum, int size, int n_iter, bool use_P){
     /*printf("initial residue: %lli \n",current_best);*/ 
-    for(int k=0;k<n_iter;k++){
-        random_move(S,place_holder,size);
-        long long res = residue(A,place_holder,sum,size);
-        if(res < current_best){
-            set_equal(place_holder,S,size);
-            printf("res: %lli \n",res); 
-            current_best = res;
-            // printf("current: %d \n",current_best);
+    long long res;
+    long long current_best;
+    if(use_P==0){
+        int place_holder[size];
+        jumble(S,size);
+        current_best = residue(A,S,sum,size);
+        for(int k=0;k<n_iter;k++){
+            random_move(S,place_holder,size);
+            res = residue(A,place_holder,sum,size);
+            if(res < current_best){
+                set_equal(place_holder,S,size);
+                printf("res: %lli \n",res); 
+                current_best = res;
+            }
+        }
+    }
+    else{
+        int place_holder[size];
+        p_jumble(P,size);
+        std::vector <long long> A2 = partitionTransform(A,P,size);
+        current_best = kk(A2);
+        for(int k=0;k<n_iter;k++){
+            p_random_move(P,place_holder,size);
+            A2 = partitionTransform(A,place_holder,size);
+            res = kk(A2);
+            if(res < current_best){
+                set_equal(place_holder,P,size);
+                printf("res: %lli \n",res); 
+                current_best = res;
+            }
         }
     }
     return current_best;
 }
 
-long long sim_annealing(std::vector<long long> A,int S[], long double sum, int size, int n_iter){
-    int place_holder[size];
-    int orig_place_holder[size];
-    set_equal(S,orig_place_holder,size);
-
-    jumble(S,size);
-    long long S_res = residue(A,S,sum,size);
-    long long S_res3 = S_res;
+long long sim_annealing(std::vector<long long> A,int S[], int P[], long double sum, int size, int n_iter, bool use_P){
+    long long S_res3;
     int rand_count = 0;
-    /*printf("initial residue: %lli \n",S_res);*/
-    for(int k=0;k<n_iter;k++){
-        random_move(S,place_holder,size);
-        long long S_res2 = residue(A,place_holder,sum,size);
-        if(S_res2 < S_res){
-            set_equal(place_holder,S,size);
-            S_res = S_res2;
-            // printf("current: %d \n",S_res);
-        }
-        else{
-            long double prob = (-S_res2 - S_res)/T(k);
-            /*printf("before term: %LF \n",prob);*/
-            prob = exp(prob);
-            /*printf("prob: %LF \n", prob); */
-            if(drand48() < prob){
-                rand_count += 1;
+    if(use_P==0){
+        int place_holder[size];
+        int orig_place_holder[size];
+        set_equal(S,orig_place_holder,size);
+
+        jumble(S,size);
+        long long S_res = residue(A,S,sum,size);
+        S_res3 = S_res;
+        /*printf("initial residue: %lli \n",S_res);*/
+        for(int k=0;k<n_iter;k++){
+            random_move(S,place_holder,size);
+            long long S_res2 = residue(A,place_holder,sum,size);
+            if(S_res2 < S_res){
                 set_equal(place_holder,S,size);
                 S_res = S_res2;
+                // printf("current: %d \n",S_res);
+            }
+            else{
+                long double prob = (-S_res2 - S_res)/T(k);
+                prob = exp(prob);
+                if(drand48() < prob){
+                    rand_count += 1;
+                    set_equal(place_holder,S,size);
+                    S_res = S_res2;
+                }
+            }
+            if(S_res < S_res3){
+                S_res3 = S_res;
+                set_equal(S,orig_place_holder,size);
             }
         }
-        if(S_res < S_res3){
-            S_res3 = S_res;
-            set_equal(S,orig_place_holder,size);
+    }
+    else{
+        int place_holder[size];
+        int orig_place_holder[size];
+        set_equal(P,orig_place_holder,size);
+
+        p_jumble(P,size);
+        std::vector <long long> A2 = partitionTransform(A,P,size);
+        long long S_res = kk(A2);
+        S_res3 = S_res;
+
+        for(int k=0;k<n_iter;k++){
+            p_random_move(P,place_holder,size);
+            A2 = partitionTransform(A,P,size);
+            long long S_res2 = kk(A2);
+            if(S_res2 < S_res){
+                set_equal(place_holder,P,size);
+                S_res = S_res2;
+                // printf("current: %d \n",S_res);
+            }
+            else{
+                long double prob = (-S_res2 - S_res)/T(k);
+                prob = exp(prob);
+                if(drand48() < prob){
+                    rand_count += 1;
+                    set_equal(place_holder,P,size);
+                    S_res = S_res2;
+                }
+            }
+            if(S_res < S_res3){
+                S_res3 = S_res;
+                set_equal(P,orig_place_holder,size);
+            }
         }
     }
     printf("random move count: %d \n",rand_count);
@@ -257,16 +308,11 @@ long long sim_annealing(std::vector<long long> A,int S[], long double sum, int s
 
 
 int main(){
-
-
-
-
-
     int size = 100;
     std::vector<long long> A(size,0);
     srand48((int)time(NULL));
     /* read integers into an array */
-    FILE *fin = fopen("file.in","r");
+    FILE *fin = fopen("hi.txt","r");
     for(int k=0;k<size;k++){
         fscanf(fin,"%lli\n",&A[k]);
     }
@@ -280,19 +326,19 @@ int main(){
     int a, b, c;
     long long scores[3] = {0,0,0};
 
-    for(int i=0;i<1;i++){
+    for(int i=0;i<100;i++){
         scores[0] += repeated_random(A,S,P,total_sum,size,25000,1);
-        /*scores[1] += hill_climbing(A,S,total_sum,size,25000);
-        scores[2] += sim_annealing(A,S,total_sum,size,25000);*/
+        scores[1] += hill_climbing(A,S,P,total_sum,size,25000,1);
+        scores[2] += sim_annealing(A,S,P,total_sum,size,25000,1);
         printf("hi \n");
     }
     
     long double scores_avg[3] = {scores[0],scores[1],scores[2]};
     /*scores_avg = {scores_avg[0]/100,scores_avg[1]/100,scores_avg[2]/100};*/
 
-    printf("random score: %LF \n",scores_avg[0]);
-    /*printf("hill score: %LF \n",scores_avg[1]/100);
-    printf("sim_annealing score: %LF \n",scores_avg[2]/100);*/
+    printf("random score: %LF \n",scores_avg[1]/100);
+    printf("hill score: %LF \n",scores_avg[1]/100);
+    printf("sim_annealing score: %LF \n",scores_avg[2]/100);
     
 
 
