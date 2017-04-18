@@ -6,7 +6,6 @@
 #include<iostream>
 #include<valarray>
 
-
 /* generate 'len' random binary numbers to simulate random S */
 void jumble(int S[],int len){
     for(int i=0;i<len;i++){
@@ -42,6 +41,28 @@ void v_set_equal(std::vector<long long> A,std::vector<long long> A2,int len){
     for(int i=0;i<len;i++){
         A2[i] = A[i];
     }
+}
+
+long long kk(std::vector<long long> v) 
+{
+    std::sort (v.begin(), v.end());
+    int counter = 0;
+    int len = v.end() - v.begin();
+    while (counter < len-1) {
+
+        long long diff = v[len - 1] - v[len - 2];
+
+        // printf("index: %d, Diff: %d\n", counter,diff);
+        v.erase(v.end()-1);
+        v.erase(v.end()-1);
+        v.insert(v.begin(),0);
+
+        v.insert(std::upper_bound(v.begin() + counter, v.end(), diff), diff);
+        // print_vec(v);
+
+        counter ++;
+    }
+    return v[len-1];
 }
 
 /* a random move of one or two elements; alters S2 and leaves S unchanged */
@@ -120,8 +141,7 @@ long long repeated_random(std::vector<long long> A, int S[], int P[], long doubl
         for(int i=0;i<n_iter;i++){
             p_jumble(P,size);
             partitionTransform(A,A2,P,size);
-            v_set_equal(A2,A,size);
-            long long res = residue(A,S,sum,size);
+            long long res = kk(A2);
             if(res < current_best){
                 /*printf("res: %lli \n",res);*/
                 current_best = res;
@@ -147,7 +167,7 @@ long long hill_climbing(std::vector<long long> A,int S[], long double sum, int s
         long long res = residue(A,place_holder,sum,size);
         if(res < current_best){
             set_equal(place_holder,S,size);
-            /*printf("res: %lli \n",res); */
+            printf("res: %lli \n",res); 
             current_best = res;
             // printf("current: %d \n",current_best);
         }
@@ -193,6 +213,7 @@ long long sim_annealing(std::vector<long long> A,int S[], long double sum, int s
     return S_res3;
 }
 
+
 int main(){
     int size = 100;
     std::vector<long long> A(size,0);
@@ -212,7 +233,7 @@ int main(){
     int a, b, c;
     long long scores[3] = {0,0,0};
 
-    for(int i=0;i<100;i++){
+    for(int i=0;i<1;i++){
         scores[0] += repeated_random(A,S,P,total_sum,size,25000,1);
         /*scores[1] += hill_climbing(A,S,total_sum,size,25000);
         scores[2] += sim_annealing(A,S,total_sum,size,25000);*/
@@ -222,7 +243,7 @@ int main(){
     long double scores_avg[3] = {scores[0],scores[1],scores[2]};
     /*scores_avg = {scores_avg[0]/100,scores_avg[1]/100,scores_avg[2]/100};*/
 
-    printf("random score: %LF \n",scores_avg[0]/100);
+    printf("random score: %LF \n",scores_avg[0]);
     /*printf("hill score: %LF \n",scores_avg[1]/100);
     printf("sim_annealing score: %LF \n",scores_avg[2]/100);*/
     
