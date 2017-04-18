@@ -17,7 +17,7 @@ void jumble(int S[],int len){
 /* generate 'len' random numbers to simulate random S */
 void p_jumble(int P[],int len){
     for(int i=0;i<len;i++){
-        P[i] = floor(drand48()*101);
+        P[i] = ceil(drand48()*100);
     }
 }
 
@@ -51,7 +51,7 @@ void random_move(int S[],int S2[],int len){
 }
 
 
-long long arr_sum(long long A[],int size){
+long long arr_sum(std::vector<long long> A,int size){
     long long result = 0;
     for(int i=0;i<size;i++){
         result += A[i];
@@ -60,7 +60,7 @@ long long arr_sum(long long A[],int size){
 }
 
 /* function to determine residue of list, given assignment S */
-long long residue(long long A[], int S[], long double sum, int size){
+long long residue(std::vector<long long> A, int S[], long double sum, int size){
     long long result = 0;
     for(int j=0;j<size;j++){
         if(S[j]){
@@ -68,13 +68,31 @@ long long residue(long long A[], int S[], long double sum, int size){
         }
     }
     long long final = 2*std::abs(sum/2-result);
-    /*printf("result: %lli \n",result);
-    printf("sum/2: %LF \n",sum/2 - result);
-    printf("final: %lli \n",final);*/
     return final;
 }
 
-long long repeated_random(long long A[], int S[], long double sum, int size, int n_iter){
+void partitionTransform(std::vector<long long> A, std::vector<long long> newA, int P[], int size) {
+    for(int group=1; group<size+1; group++){
+        bool searching = true;
+        int first_index = -1;
+
+        for(int i=0; i<size+1; i++){
+            if (P[i] == group) {
+                if (searching){
+                    searching = false;
+                    newA[i] = A[i];
+                    first_index = i;
+                }
+                else {
+                    newA[first_index] += A[i];
+                    newA[i] = 0;
+                }   
+            }
+        }
+    }
+}
+
+long long repeated_random(std::vector<long long> A, int S[], long double sum, int size, int n_iter){
     long long current_best = sum;
     long long S_local[size];
     for(int i=0;i<n_iter;i++){
@@ -94,7 +112,7 @@ long double T(int iter){
     return 300000000000*pow(.8,power);
 }
 
-long long hill_climbing(long long A[],int S[], long double sum, int size, int n_iter){
+long long hill_climbing(std::vector<long long> A,int S[], long double sum, int size, int n_iter){
     int place_holder[size];
     jumble(S,size);
     long long current_best = residue(A,S,sum,size);
@@ -112,7 +130,7 @@ long long hill_climbing(long long A[],int S[], long double sum, int size, int n_
     return current_best;
 }
 
-long long sim_annealing(long long A[],int S[], long double sum, int size, int n_iter){
+long long sim_annealing(std::vector<long long> A,int S[], long double sum, int size, int n_iter){
     int place_holder[size];
     int orig_place_holder[size];
     set_equal(S,orig_place_holder,size);
@@ -153,7 +171,7 @@ long long sim_annealing(long long A[],int S[], long double sum, int size, int n_
 
 int main(){
     int size = 100;
-    long long A[size];
+    std::vector<long long> A(100,0);
     srand48((int)time(NULL));
     /* read integers into an array */
     FILE *fin = fopen("hi.txt","r");
