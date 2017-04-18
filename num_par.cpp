@@ -6,6 +6,30 @@
 #include<iostream>
 #include<valarray>
 
+
+void printArrayLL(long long arr[], int size) {
+    for ( int i = 0; i < size; i++ ) {
+        std::cout << arr[i] << ' ';
+    }
+    std::cout << std::endl;
+}
+
+void printArrayI(int arr[], int size) {
+    for ( int i = 0; i < size; i++ ) {
+        std::cout << arr[i] << ' ';
+    }
+    std::cout << std::endl;
+}
+
+void print_vec(const std::vector<long long>& vec)
+{
+    for(int i=0; i<vec.size(); ++i) std::cout << vec[i] << ' ';
+    std::cout << '\n';
+}
+
+
+
+
 /* generate 'len' random binary numbers to simulate random S */
 void jumble(int S[],int len){
     for(int i=0;i<len;i++){
@@ -79,6 +103,7 @@ void random_move(int S[],int S2[],int len){
 }
 
 
+
 long long arr_sum(std::vector<long long> A,int size){
     long long result = 0;
     for(int i=0;i<size;i++){
@@ -99,31 +124,42 @@ long long residue(std::vector<long long> A, int S[], long double sum, int size){
     return final;
 }
 
-void partitionTransform(std::vector<long long> A, std::vector<long long> newA, int P[], int size) {
+std::vector<long long> partitionTransform(std::vector<long long> A, int P[], int size) {
+    std::vector<long long> newA(size, 0);
     for(int group=1; group<size+1; group++){
         bool searching = true;
         int first_index = -1;
 
         for(int i=0; i<size+1; i++){
             if (P[i] == group) {
+                // printf("first_index: %d", first_index);
                 if (searching){
                     searching = false;
+                    // printf("A[%d] = %lli\n", i, A[i]);
                     newA[i] = A[i];
+                    // printf("newA[%d] = %lli\n", i, newA[i]);
                     first_index = i;
+                    // printf("val: %lli", A[i]);
                 }
                 else {
-                    newA[first_index] += A[i];
-                    newA[i] = 0;
+                    // printf("first_index: %d -- %lli\n", first_index, newA[first_index]);
+                    long long temp = newA[first_index];
+                    newA[first_index] = temp + A[i];
+                    // printf("NEWA[%d] = %lli\n", first_index, newA[first_index]);
+                    // newA[i] = 0;
                 }   
             }
         }
+
     }
+
+    return(newA);
 }
 
 long long repeated_random(std::vector<long long> A, int S[], int P[], long double sum, int size, int n_iter, bool use_P){
     long long current_best = sum;
     long long S_local[size];
-    std::vector<long long> A2(size,0);
+    std::vector<long long> A2(size);
     /* first representation, then second one */
     if(use_P==0){
         for(int i=0;i<n_iter;i++){
@@ -140,7 +176,13 @@ long long repeated_random(std::vector<long long> A, int S[], int P[], long doubl
     else{
         for(int i=0;i<n_iter;i++){
             p_jumble(P,size);
-            partitionTransform(A,A2,P,size);
+            printf("PARTITION:\n");
+            printArrayI(P,size);
+            std::vector <long long> A2 = partitionTransform(A,P,size);
+            printf("ORIGINAL ARRAY:\n");
+            print_vec(A);
+            printf("PARTITIONED ARRAY:\n");
+            print_vec(A2);
             long long res = kk(A2);
             if(res < current_best){
                 /*printf("res: %lli \n",res);*/
@@ -215,11 +257,16 @@ long long sim_annealing(std::vector<long long> A,int S[], long double sum, int s
 
 
 int main(){
+
+
+
+
+
     int size = 100;
     std::vector<long long> A(size,0);
     srand48((int)time(NULL));
     /* read integers into an array */
-    FILE *fin = fopen("hi.txt","r");
+    FILE *fin = fopen("file.in","r");
     for(int k=0;k<size;k++){
         fscanf(fin,"%lli\n",&A[k]);
     }
