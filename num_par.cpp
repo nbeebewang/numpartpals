@@ -7,10 +7,17 @@
 #include<valarray>
 
 
-/* generate 'len' random numbers to simulate random S */
+/* generate 'len' random binary numbers to simulate random S */
 void jumble(int S[],int len){
     for(int i=0;i<len;i++){
         S[i] = drand48()>.5;
+    }
+}
+
+/* generate 'len' random numbers to simulate random S */
+void p_jumble(int P[],int len){
+    for(int i=0;i<len;i++){
+        P[i] = floor(drand48()*101);
     }
 }
 
@@ -44,8 +51,8 @@ void random_move(int S[],int S2[],int len){
 }
 
 
-double arr_sum(int A[],int size){
-    double result = 0;
+long long arr_sum(long long A[],int size){
+    long long result = 0;
     for(int i=0;i<size;i++){
         result += A[i];
     }
@@ -53,24 +60,28 @@ double arr_sum(int A[],int size){
 }
 
 /* function to determine residue of list, given assignment S */
-int residue(int A[], int S[], double sum, int size){
-    int result = 0;
+long long residue(long long A[], int S[], long double sum, int size){
+    long long result = 0;
     for(int j=0;j<size;j++){
         if(S[j]){
             result += A[j];
         }
     }
-    return 2*std::abs(sum/2-result);
+    long long final = 2*std::abs(sum/2-result);
+    /*printf("result: %lli \n",result);
+    printf("sum/2: %LF \n",sum/2 - result);
+    printf("final: %lli \n",final);*/
+    return final;
 }
 
-int repeated_random(int A[], int S[], double sum, int size, int n_iter){
-    int current_best = sum;
-    int S_local[size];
+long long repeated_random(long long A[], int S[], long double sum, int size, int n_iter){
+    long long current_best = sum;
+    long long S_local[size];
     for(int i=0;i<n_iter;i++){
         jumble(S,size);
-        int res = residue(A,S,sum,size);
+        long long res = residue(A,S,sum,size);
         if(res < current_best){
-            printf("res: %d \n",res);
+            printf("res: %lli \n",res);
             current_best = res;
             *S_local = *S;
         }
@@ -78,21 +89,22 @@ int repeated_random(int A[], int S[], double sum, int size, int n_iter){
     return current_best;
 }
 
-double T(int iter){
+long double T(int iter){
     double power = iter/300;
-    return 10000*pow(.8,power);
+    return 300000000000*pow(.8,power);
 }
 
-int hill_climbing(int A[],int S[], double sum, int size, int n_iter){
+long long hill_climbing(long long A[],int S[], long double sum, int size, int n_iter){
     int place_holder[size];
     jumble(S,size);
-    int current_best = residue(A,S,sum,size);
-    printf("initial residue: %d \n",current_best);
+    long long current_best = residue(A,S,sum,size);
+    printf("initial residue: %lli \n",current_best);
     for(int k=0;k<n_iter;k++){
         random_move(S,place_holder,size);
-        int res = residue(A,place_holder,sum,size);
+        long long res = residue(A,place_holder,sum,size);
         if(res < current_best){
             set_equal(place_holder,S,size);
+            printf("res: %lli \n",res);
             current_best = res;
             // printf("current: %d \n",current_best);
         }
@@ -100,27 +112,29 @@ int hill_climbing(int A[],int S[], double sum, int size, int n_iter){
     return current_best;
 }
 
-int sim_annealing(int A[],int S[], double sum, int size, int n_iter){
+long long sim_annealing(long long A[],int S[], long double sum, int size, int n_iter){
     int place_holder[size];
     int orig_place_holder[size];
     set_equal(S,orig_place_holder,size);
 
     jumble(S,size);
-    int S_res = residue(A,S,sum,size);
-    int S_res3 = S_res;
+    long long S_res = residue(A,S,sum,size);
+    long long S_res3 = S_res;
     int rand_count = 0;
-    printf("initial residue: %d \n",S_res);
+    printf("initial residue: %lli \n",S_res);
     for(int k=0;k<n_iter;k++){
         random_move(S,place_holder,size);
-        int S_res2 = residue(A,place_holder,sum,size);
+        long long S_res2 = residue(A,place_holder,sum,size);
         if(S_res2 < S_res){
             set_equal(place_holder,S,size);
             S_res = S_res2;
             // printf("current: %d \n",S_res);
         }
         else{
-            double prob = (-S_res2 - S_res)/T(k);
+            long double prob = (-S_res2 - S_res)/T(k);
+            /*printf("before term: %LF \n",prob);*/
             prob = exp(prob);
+            /*printf("prob: %LF \n", prob); */
             if(drand48() < prob){
                 rand_count += 1;
                 set_equal(place_holder,S,size);
@@ -138,30 +152,44 @@ int sim_annealing(int A[],int S[], double sum, int size, int n_iter){
 }
 
 int main(){
-    int size = 20;
-    int A[size];
+    int size = 100;
+    long long A[size];
     srand48((int)time(NULL));
     /* read integers into an array */
-    FILE *fin = fopen("file.in2","r");
+    FILE *fin = fopen("hi.txt","r");
     for(int k=0;k<size;k++){
-        fscanf(fin,"%d\n",&A[k]);
+        fscanf(fin,"%lli\n",&A[k]);
     }
     fclose(fin);
-    double total_sum = arr_sum(A,size);
+    long double total_sum = arr_sum(A,size);
+    printf("sum: %Lf \n",total_sum);
 
+
+    
     int S[size];
-    jumble(S,size);
-    int S2[size];
+    int P[size];
+    int a, b, c;
+    long long scores[3] = {0,0,0};
 
-    int score = hill_climbing(A,S,total_sum,size,2500000);
-    printf("hill score: %d \n",score);
+    for(int i=0;i<100;i++){
+        scores[0] += repeated_random(A,S,total_sum,size,25000);
+        scores[1] += hill_climbing(A,S,total_sum,size,25000);
+        scores[2] += sim_annealing(A,S,total_sum,size,25000);
+    }
+    
+    long double scores_avg[3] = {scores[0],scores[1],scores[2]};
+    /*scores_avg = {scores_avg[0]/100,scores_avg[1]/100,scores_avg[2]/100};*/
 
-    int score2 = repeated_random(A,S,total_sum,size,25000);
-    printf("random score: %d \n",score2);
+    printf("random score: %LF \n",scores_avg[0]/100);
+    printf("hill score: %LF \n",scores_avg[1]/100);
+    printf("sim_annealing score: %LF \n",scores_avg[2]/100);
+    
 
-    int score3 = sim_annealing(A,S,total_sum,size,25000);
-    printf("sim_annealing score: %d \n",score3);
+    /*
+    printf("hill score: %LF \n",scores2/100);
 
+    
+    printf("sim_annealing score: %LF \n",scores3/100); */
 
 }
 
