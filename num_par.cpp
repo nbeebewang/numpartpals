@@ -194,6 +194,7 @@ long long repeated_random(std::vector<long long> A, int S[], int P[], long doubl
 long double T(int iter, bool use_P){
     double power = iter/300;
     if(use_P==1){
+        return 0;
         return 300000000*pow(.8,power);
     }
     else{
@@ -325,26 +326,44 @@ int main(){
     long double total_sum = arr_sum(A,size);
     printf("sum: %Lf \n",total_sum);
 
-
     int S[size];
     int P[size];
     int a, b, c;
     long long scores[3] = {0,0,0};
-    int iters = 10;
+    double times[3] = {0,0,0};
+    int iters = 5;
 
-    for(int i=0;i<iters;i++){
+
+    double start = clock();
+    for(int i=0;i<0;i++){
         scores[0] += repeated_random(A,S,P,total_sum,size,25000,1);
-        scores[1] += hill_climbing(A,S,P,total_sum,size,25000,1);
-        scores[2] += sim_annealing(A,S,P,total_sum,size,25000,1);
-        printf("hi \n");
     }
+    times[0] = (clock() - start)/CLOCKS_PER_SEC;
+
+    start = clock();
+    for(int i=0;i<0;i++){
+        scores[1] += hill_climbing(A,S,P,total_sum,size,25000,1);
+    }
+    times[1] = (clock() - start)/CLOCKS_PER_SEC;
     
+    start = clock();
+    for(int i=0;i<iters;i++){
+        scores[2] += sim_annealing(A,S,P,total_sum,size,25000,1);
+    }
+    times[2] = (clock() - start)/CLOCKS_PER_SEC;
+
+
+
+
     long double scores_avg[3] = {scores[0],scores[1],scores[2]};
     /*scores_avg = {scores_avg[0]/100,scores_avg[1]/100,scores_avg[2]/100};*/
 
     printf("random score: %LF \n",scores_avg[0]/iters);
+    printf("random time per iter: %f \n",times[0]/iters);
     printf("hill score: %LF \n",scores_avg[1]/iters);
+    printf("hill time per iter: %f \n",times[1]/iters);
     printf("sim_annealing score: %LF \n",scores_avg[2]/iters);
+    printf("sim_annealing time per iter: %f \n",times[2]/iters);
     
 
 
