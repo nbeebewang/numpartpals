@@ -12,14 +12,6 @@ std::vector<long long> gen_random_vec(int len) {
 } 
 
 
- 
-void print_vec(const std::vector<long long>& vec)
-{
-    for(int i=0; i<vec.size(); ++i) std::cout << vec[i] << ' ';
-    std::cout << '\n';
-}
-
-
 long long kk(std::vector<long long> v) 
 {
     std::sort (v.begin(), v.end());
@@ -75,13 +67,13 @@ int main(int argc, char** argv) {
     fclose(fin);
 
 
-    double s = clock();
+    // double s = clock();
 
-    printf("%lli, ", kk(v));
+    printf("%lli\n", kk(v));
 
-    double time = clock() - s;
+    // double time = clock() - s;
 
-    printf("%f\n", ((float)time)/CLOCKS_PER_SEC);
+    // printf("%f\n", ((float)time)/CLOCKS_PER_SEC);
 
 
 
